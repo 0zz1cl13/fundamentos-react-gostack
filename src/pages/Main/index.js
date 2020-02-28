@@ -1,7 +1,10 @@
 import React, { Component } from 'react';
+import { FaGithubAlt, FaPlus, FaSpinner } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
+
+import Container from '../../components/Container';
 import api from '../../services/api';
-import { FaGithubAlt, FaPlus } from 'react-icons/fa';
-import { Container, Form, SubmitButton } from './styles';
+import { Form, SubmitButton, List } from './styles';
 
 class Main extends Component {
   state = {
@@ -10,7 +13,23 @@ class Main extends Component {
     loading: false,
   };
 
-  handleChangeInput = e => {
+  componentDidMount() {
+    const repositories = localStorage.getItem('repositories');
+
+    if (repositories) {
+      this.setState({ repositories: JSON.parse(repositories) });
+    }
+  }
+
+  componentDidUpdate(_, prevState) {
+    const { repositories } = this.state;
+
+    if (prevState.repositories !== repositories) {
+      localStorage.setItem('repositories', JSON.stringify(repositories));
+    }
+  }
+
+  hangleInputChange = e => {
     this.setState({ newRepo: e.target.value });
   };
 
@@ -29,10 +48,12 @@ class Main extends Component {
       newRepo: '',
       loading: false,
     });
+
+    console.log(this.state);
   };
 
   render() {
-    const { newRepo, loading } = this.state;
+    const { newRepo, repositories, loading } = this.state;
     return (
       <Container>
         <h1>
@@ -44,14 +65,29 @@ class Main extends Component {
           <input
             type="text"
             placeholder="Adicionar repositório"
-            onChange={this.handleChangeInput}
+            onChange={this.hangleInputChange}
             value={newRepo}
           />
 
           <SubmitButton loading={loading}>
-            <FaPlus color="#fff" size={14} />
+            {loading ? (
+              <FaSpinner color="#fff" size={14} />
+            ) : (
+              <FaPlus color="#fff" size={14} />
+            )}
           </SubmitButton>
         </Form>
+
+        <List>
+          {repositories.map(repository => (
+            <li key={repository.name}>
+              <span>{repository.name}</span>
+              <Link to={`repository/${encodeURIComponent(repository.name)}`}>
+                Detalhes
+              </Link>
+            </li>
+          ))}
+        </List>
       </Container>
     );
   }
